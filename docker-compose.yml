@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: video_ia_mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Buzzerbeater23**
+      MYSQL_DATABASE: video_ia_db
+      MYSQL_USER: video_ia_user
+      MYSQL_PASSWORD: Thunder23**
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./mariadb/init.sql:/docker-entrypoint-initdb.d/init.sql  # Initialisation de la base
+    networks:
+      - video-ia-net
+
+volumes:
+  mariadb_data:
+
+networks:
+  video-ia-net:
+    driver: bridge
