@@ -5,6 +5,11 @@ import { Card } from "@/components/ui/card"
 import { MapPin, Mail, Phone } from "lucide-react"
 import Link from "next/link"
 import { Logo } from "../components/logo"
+import React from "react"
+import { SearchIconProps } from "../types"
+
+// Déclaration de module pour lucide-react
+declare module 'lucide-react';
 
 export default function ContactPage() {
   // Ces données seraient normalement chargées depuis une API ou une base de données
@@ -300,7 +305,7 @@ export default function ContactPage() {
   )
 }
 
-function SearchIcon({ className }) {
+function SearchIcon({ className }: SearchIconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -318,7 +323,7 @@ function SearchIcon({ className }) {
   )
 }
 
-function Input(props) {
+function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       type="text"
@@ -328,7 +333,7 @@ function Input(props) {
   )
 }
 
-function TwitterIcon(props) {
+function TwitterIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -347,7 +352,7 @@ function TwitterIcon(props) {
   )
 }
 
-function LinkedinIcon(props) {
+function LinkedinIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -368,7 +373,7 @@ function LinkedinIcon(props) {
   )
 }
 
-function InstagramIcon(props) {
+function InstagramIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}

@@ -33,22 +33,12 @@ export async function POST(request: NextRequest) {
     const submission = await prisma.toolSubmission.create({
       data: {
         name: data.name,
-        slug,
         description: data.description,
-        longDescription: data.longDescription,
-        logo: data.logo,
-        image: data.image,
-        pricing: data.pricing || "Gratuit",
-        priceDetails: data.priceDetails,
-        website: data.website,
-        twitterUrl: data.twitterUrl,
-        linkedinUrl: data.linkedinUrl,
-        instagramUrl: data.instagramUrl,
+        websiteUrl: data.website,
         submitterName: data.submitterName,
         submitterEmail: data.submitterEmail,
-        categoryId: data.categoryId,
-        tags: JSON.stringify(data.tags || []),
-      },
+        status: "Pending"
+      }
     })
 
     return NextResponse.json(submission)

@@ -25,7 +25,7 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
         tool: {
           include: {
             category: true,
-            tags: {
+            toolTags: {
               include: {
                 tag: true,
               },
@@ -40,12 +40,12 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
       id: toolTag.tool.id,
       name: toolTag.tool.name,
       slug: toolTag.tool.slug,
-      description: toolTag.tool.description,
-      image: toolTag.tool.image,
+      description: toolTag.tool.shortDescription,
+      image: toolTag.tool.imageUrl,
       rating: toolTag.tool.rating,
       category: toolTag.tool.category.name,
       categorySlug: toolTag.tool.category.slug,
-      tags: toolTag.tool.tags.map((t) => t.tag.name),
+      tags: toolTag.tool.toolTags.map((t) => t.tag.name),
     }))
 
     // Construire la réponse
@@ -80,7 +80,6 @@ export async function PUT(request: NextRequest, { params }: { params: { slug: st
       where: { slug },
       data: {
         name: data.name,
-        featured: data.featured,
       },
     })
 

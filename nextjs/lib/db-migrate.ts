@@ -1,12 +1,10 @@
 import { PrismaClient } from '@prisma/client'
-import { dbManager } from './db-config'
+import prisma from './prisma'
 
 export async function migrate() {
-  const prisma = dbManager.getClient()
-
   try {
     // Vérifier la connexion à la base de données
-    const isHealthy = await dbManager.healthCheck()
+    const isHealthy = await healthCheck()
     if (!isHealthy) {
       throw new Error('La base de données n\'est pas accessible')
     }
@@ -40,11 +38,9 @@ export async function migrate() {
 }
 
 export async function rollback() {
-  const prisma = dbManager.getClient()
-
   try {
     // Vérifier la connexion à la base de données
-    const isHealthy = await dbManager.healthCheck()
+    const isHealthy = await healthCheck()
     if (!isHealthy) {
       throw new Error('La base de données n\'est pas accessible')
     }
@@ -76,11 +72,9 @@ export async function rollback() {
 }
 
 export async function seed() {
-  const prisma = dbManager.getClient()
-
   try {
     // Vérifier la connexion à la base de données
-    const isHealthy = await dbManager.healthCheck()
+    const isHealthy = await healthCheck()
     if (!isHealthy) {
       throw new Error('La base de données n\'est pas accessible')
     }
@@ -113,5 +107,16 @@ export async function seed() {
   } catch (error) {
     console.error('Erreur lors du seeding:', error)
     throw error
+  }
+}
+
+// Fonction utilitaire pour vérifier la santé de la base de données
+async function healthCheck(): Promise<boolean> {
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    return true
+  } catch (error) {
+    console.error('Erreur lors du contrôle de santé de la base de données:', error)
+    return false
   }
 } 

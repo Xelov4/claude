@@ -45,7 +45,6 @@ export async function POST(request: NextRequest) {
       data: {
         name: data.name,
         slug,
-        featured: data.featured || false,
       },
     })
 

@@ -6,17 +6,26 @@ import Link from "next/link"
 import { Logo } from "./components/logo"
 import { AnimatedSearch } from "./components/animated-search"
 import prisma from "@/lib/prisma"
+import React from "react"
+import { 
+  Category, 
+  Tool, 
+  FormattedTool, 
+  CategoryWithTools, 
+  SearchIconProps, 
+  FilterIconProps,
+  Tag
+} from "./types"
 
 // Cette fonction est exécutée côté serveur à chaque requête
 export default async function HomePage() {
   // Récupérer les catégories mises en avant
   const featuredCategories = await prisma.category.findMany({
     where: {
-      featured: true,
-      visible: true,
+      isVisible: true,
     },
     orderBy: {
-      order: "asc",
+      orderPosition: "asc",
     },
     take: 4,
   })
@@ -27,11 +36,11 @@ export default async function HomePage() {
       const tools = await prisma.tool.findMany({
         where: {
           OR: [{ categoryId: category.id }, { category: { parentId: category.id } }],
-          approved: true,
+          isVisible: true,
         },
         include: {
           category: true,
-          tags: {
+          toolTags: {
             include: {
               tag: true,
             },
@@ -44,43 +53,40 @@ export default async function HomePage() {
       })
 
       // Formater les outils
-      const formattedTools = tools.map((tool) => ({
+      const formattedTools = tools.map((tool): FormattedTool => ({
         id: tool.id,
         name: tool.name,
         slug: tool.slug,
-        description: tool.description,
-        image: tool.image || "/placeholder.svg?height=200&width=400",
-        rating: tool.rating,
-        category: tool.category.name,
-        tags: tool.tags.map((t) => t.tag.name),
+        description: tool.shortDescription,
+        image: tool.imageUrl || "/placeholder.svg?height=200&width=400",
+        rating: typeof tool.rating === 'number' ? tool.rating : Number(tool.rating.toString()),
+        category: tool.category?.name || "",
+        tags: tool.toolTags?.map((t) => t.tag.name) || [],
       }))
 
       return {
         ...category,
         tools: formattedTools,
-      }
+      } as CategoryWithTools
     }),
   )
 
   // Récupérer les tags populaires
   const popularTags = await prisma.tag.findMany({
-    where: {
-      featured: true,
-    },
     take: 5,
   })
 
   // Récupérer les outils populaires
   const popularTools = await prisma.tool.findMany({
     where: {
-      approved: true,
+      isVisible: true,
       rating: {
         gte: 4.5,
       },
     },
     include: {
       category: true,
-      tags: {
+      toolTags: {
         include: {
           tag: true,
         },
@@ -93,15 +99,15 @@ export default async function HomePage() {
   })
 
   // Formater les outils populaires
-  const formattedPopularTools = popularTools.map((tool) => ({
+  const formattedPopularTools = popularTools.map((tool): FormattedTool => ({
     id: tool.id,
     name: tool.name,
     slug: tool.slug,
-    description: tool.description,
-    image: tool.image || "/placeholder.svg?height=200&width=400",
-    rating: tool.rating,
-    category: tool.category.name,
-    tags: tool.tags.map((t) => t.tag.name),
+    description: tool.shortDescription,
+    image: tool.imageUrl || "/placeholder.svg?height=200&width=400",
+    rating: typeof tool.rating === 'number' ? tool.rating : Number(tool.rating.toString()),
+    category: tool.category?.name || "",
+    tags: tool.toolTags?.map((t) => t.tag.name) || [],
   }))
 
   return (
@@ -204,7 +210,7 @@ export default async function HomePage() {
             <div className="space-y-3">
               <h3 className="text-sm font-medium">Tags Populaires</h3>
               <div className="flex flex-wrap gap-2">
-                {popularTags.map((tag) => (
+                {popularTags.map((tag: Tag) => (
                   <Badge key={tag.id} variant="outline" className="cursor-pointer hover:bg-muted">
                     {tag.name}
                   </Badge>
@@ -263,7 +269,9 @@ export default async function HomePage() {
       {categoriesWithTools.map((category) => (
         <section key={category.id} className="container py-12 border-t border-border/40 first:border-0">
           <h2 className="text-3xl font-bold mb-4">{category.name}</h2>
-          <p className="text-muted-foreground mb-8 max-w-4xl">{category.description.substring(0, 150)}...</p>
+          <p className="text-muted-foreground mb-8 max-w-4xl">
+            {category.description ? category.description.substring(0, 150) + '...' : ''}
+          </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {category.tools.slice(0, 6).map((tool) => (
@@ -378,12 +386,12 @@ export default async function HomePage() {
   )
 }
 
-function ToolCard({ tool }) {
+function ToolCard({ tool }: { tool: FormattedTool }) {
   return (
     <Card className="overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
       <div className="aspect-video relative bg-muted">
         <img
-          src={tool.image || "/placeholder.svg"}
+          src={tool.image}
           alt={`Aperçu de ${tool.name}`}
           className="w-full h-full object-cover"
         />
@@ -416,7 +424,7 @@ function ToolCard({ tool }) {
   )
 }
 
-function SearchIcon({ className }) {
+function SearchIcon({ className }: SearchIconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -434,7 +442,7 @@ function SearchIcon({ className }) {
   )
 }
 
-function Input(props) {
+function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       type="text"
@@ -444,7 +452,7 @@ function Input(props) {
   )
 }
 
-function FilterIcon({ className }) {
+function FilterIcon({ className }: FilterIconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

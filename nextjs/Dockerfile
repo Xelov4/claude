@@ -2,6 +2,9 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
+# Installer les dépendances nécessaires pour Prisma
+RUN apk add --no-cache openssl
+
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
 
@@ -19,6 +22,9 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# Installer les dépendances nécessaires pour Prisma
+RUN apk add --no-cache openssl
 
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules

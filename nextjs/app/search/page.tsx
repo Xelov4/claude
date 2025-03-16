@@ -6,6 +6,7 @@ import { ArrowRightIcon, SearchIcon, FilterIcon, StarIcon } from "lucide-react"
 import Link from "next/link"
 import prisma from "@/lib/prisma"
 import Image from "next/image"
+import { Category as PrismaCategory, SearchCategory, SearchTag, Tag as PrismaTag } from "../types"
 
 interface Tool {
   id: string
@@ -40,14 +41,14 @@ export default async function SearchPage({ searchParams }: { searchParams: { q: 
         where: {
           OR: [
             { name: { contains: searchQuery } },
-            { description: { contains: searchQuery } },
+            { shortDescription: { contains: searchQuery } },
             { longDescription: { contains: searchQuery } },
           ],
-          approved: true,
+          isVisible: true,
         },
         include: {
           category: true,
-          tags: {
+          toolTags: {
             include: {
               tag: true,
             },
@@ -61,30 +62,41 @@ export default async function SearchPage({ searchParams }: { searchParams: { q: 
     : []
 
   // Fetch popular tags and categories for filtering
-  const popularTags = await prisma.tag.findMany({
-    where: { featured: true },
+  const popularTagsFromPrisma = await prisma.tag.findMany({
     take: 5,
   })
 
-  const categories = await prisma.category.findMany({
+  // Transformer les tags pour correspondre au type SearchTag
+  const popularTags: SearchTag[] = popularTagsFromPrisma.map((tag: PrismaTag) => ({
+    name: tag.name,
+    slug: tag.slug,
+    count: 0, // Valeur par défaut
+  }))
+
+  const prismaCategories = await prisma.category.findMany({
     where: {
-      visible: true,
-      featured: true,
+      isVisible: true,
     },
     take: 5,
-    orderBy: { order: "asc" },
   })
+
+  // Transformer les catégories pour correspondre au type SearchCategory
+  const categories: SearchCategory[] = prismaCategories.map((category: PrismaCategory) => ({
+    name: category.name,
+    slug: category.slug,
+    count: 0, // Valeur par défaut
+  }))
 
   const formattedTools = tools.map((tool: any) => ({
     id: tool.id,
     name: tool.name,
     slug: tool.slug,
-    description: tool.description,
-    image: tool.image || "/placeholder.svg?height=200&width=400",
-    rating: tool.rating,
+    description: tool.shortDescription,
+    image: tool.imageUrl || "/placeholder.svg?height=200&width=400",
+    rating: typeof tool.rating === 'number' ? tool.rating : Number(tool.rating.toString()),
     category: tool.category.name,
     categorySlug: tool.category.slug,
-    tags: tool.tags.map((t: { tag: { name: string } }) => t.tag.name),
+    tags: tool.toolTags.map((t: { tag: { name: string } }) => t.tag.name),
   }))
 
   return (
@@ -150,15 +162,15 @@ export default async function SearchPage({ searchParams }: { searchParams: { q: 
             <div className="space-y-3">
               <h3 className="text-sm font-medium">Categories</h3>
               <div className="space-y-2">
-                {categories.map((category: Category) => (
+                {categories.map((category: SearchCategory) => (
                   <div key={category.slug} className="flex items-center">
                     <input
                       type="checkbox"
-                      id={`category-${category.name}`}
+                      id={`category-${category.slug}`}
                       className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                     />
-                    <label htmlFor={`category-${category.name}`} className="ml-2 text-sm">
-                      {category.name}
+                    <label htmlFor={`category-${category.slug}`} className="ml-2 text-sm">
+                      {category.name} ({category.count})
                     </label>
                   </div>
                 ))}
@@ -172,7 +184,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q: 
             <div className="space-y-3">
               <h3 className="text-sm font-medium">Popular Tags</h3>
               <div className="flex flex-wrap gap-2">
-                {popularTags.map((tag: Tag) => (
+                {popularTags.map((tag: SearchTag) => (
                   <Badge key={tag.slug} variant="outline" className="cursor-pointer hover:bg-muted">
                     {tag.name}
                   </Badge>
@@ -371,21 +383,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q: 
   )
 }
 
-function ToolCard({
-  tool,
-}: {
-  tool: {
-    id: string
-    name: string
-    slug: string
-    description: string
-    image: string
-    rating: number
-    category: string
-    categorySlug: string
-    tags: string[]
-  }
-}) {
+function ToolCard({ tool }: { tool: Tool }) {
   return (
     <Card className="overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
       <div className="aspect-video relative bg-muted">
@@ -408,8 +406,8 @@ function ToolCard({
         </div>
         <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{tool.description}</p>
         <div className="flex flex-wrap gap-1 mt-auto mb-3">
-          {tool.tags.map((tag) => (
-            <Badge key={tag} variant="secondary" className="text-xs">
+          {tool.tags.map((tag, index) => (
+            <Badge key={index} variant="secondary" className="text-xs">
               {tag}
             </Badge>
           ))}
