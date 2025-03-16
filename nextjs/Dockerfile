@@ -1,38 +1,15 @@
-FROM node:18-alpine AS builder
+FROM node:18-alpine
 
 WORKDIR /app
-
-# Installer les dépendances nécessaires pour Prisma
-RUN apk add --no-cache openssl
-
-COPY package*.json ./
-RUN npm install --legacy-peer-deps
 
 COPY . .
-RUN npx prisma generate
 
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm install --legacy-peer-deps
 
-RUN npm run build
-
-FROM node:18-alpine AS runner
-
-WORKDIR /app
-
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-
-# Installer les dépendances nécessaires pour Prisma
-RUN apk add --no-cache openssl
-
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.mjs ./
-COPY --from=builder /app/prisma ./prisma
+ENV NODE_ENV=development
+ENV DATABASE_URL="mysql://video_ia_user:Thunder23**@mariadb:3306/video_ia_db"
+ENV NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev"]
