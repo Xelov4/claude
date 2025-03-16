@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { ArrowRightIcon, SearchIcon, FilterIcon, StarIcon, CheckIcon, ExternalLinkIcon } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 export default function CategoryPage({ params }: { params: { slug: string } }) {
   // This would normally come from your database
@@ -92,20 +93,24 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
       <section className="container pb-12">
         <Card className="overflow-hidden border-2 border-primary/10">
           <div className="flex flex-col md:flex-row">
-            <div className="w-full md:w-2/5 bg-muted">
-              <img
+            <div className="w-full md:w-2/5 bg-muted relative">
+              <Image
                 src="/placeholder.svg?height=300&width=500"
                 alt="Featured tool screenshot"
-                className="w-full h-full object-cover"
+                className="object-cover"
+                fill
+                sizes="(max-width: 768px) 100vw, 40vw"
               />
             </div>
             <div className="w-full md:w-3/5 p-6 md:p-8">
               <div className="flex items-center gap-3 mb-3">
-                <div className="size-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
-                  <img
+                <div className="size-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden relative">
+                  <Image
                     src="/placeholder.svg?height=40&width=40"
                     alt="Tool logo"
-                    className="w-full h-full object-cover"
+                    className="object-cover"
+                    fill
+                    sizes="40px"
                   />
                 </div>
                 <div>
@@ -436,7 +441,13 @@ function ToolCard() {
   return (
     <Card className="overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
       <div className="aspect-video relative bg-muted">
-        <img src="/placeholder.svg?height=200&width=400" alt="Tool thumbnail" className="w-full h-full object-cover" />
+        <Image
+          src="/placeholder.svg?height=200&width=400"
+          alt="Tool thumbnail"
+          className="object-cover"
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        />
         <Badge className="absolute top-2 right-2">Chat</Badge>
       </div>
       <div className="p-4 flex-1 flex flex-col">

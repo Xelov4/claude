@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
+import Image from "next/image"
 import {
   ArrowRightIcon,
   ExternalLinkIcon,
@@ -82,11 +83,15 @@ export default function ToolDetailPage({ params }: { params: { slug: string } })
           <div className="w-full md:w-2/3">
             <div className="flex items-start gap-4">
               <div className="size-16 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
-                <img
-                  src="/placeholder.svg?height=64&width=64"
-                  alt="AI Assistant Pro logo"
-                  className="w-full h-full object-cover"
-                />
+                <div className="relative w-full h-full">
+                  <Image
+                    src="/placeholder.svg?height=64&width=64"
+                    alt="AI Assistant Pro logo"
+                    fill
+                    className="object-cover"
+                    sizes="64px"
+                  />
+                </div>
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-3 flex-wrap">
@@ -130,11 +135,16 @@ export default function ToolDetailPage({ params }: { params: { slug: string } })
           <div className="w-full md:w-2/3 space-y-10">
             {/* Tool Screenshot */}
             <div className="aspect-video w-full bg-muted rounded-lg overflow-hidden">
-              <img
-                src="/placeholder.svg?height=400&width=800"
-                alt="AI Assistant Pro screenshot"
-                className="w-full h-full object-cover"
-              />
+              <div className="relative w-full h-full">
+                <Image
+                  src="/placeholder.svg?height=400&width=800"
+                  alt="AI Assistant Pro screenshot"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 66vw"
+                  priority
+                />
+              </div>
             </div>
 
             {/* Description Section */}
@@ -530,10 +540,12 @@ export default function ToolDetailPage({ params }: { params: { slug: string } })
   )
 }
 
-function SearchIcon({ className }) {
+function SearchIcon({ className }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -548,11 +560,13 @@ function SearchIcon({ className }) {
   )
 }
 
-function Input(props) {
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
+
+function Input(props: InputProps) {
   return (
     <input
       type="text"
-      className={`flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${props.className}`}
+      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
       {...props}
     />
   )

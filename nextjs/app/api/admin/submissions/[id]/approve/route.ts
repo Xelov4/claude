@@ -18,53 +18,21 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const tool = await prisma.tool.create({
       data: {
         name: submission.name,
-        slug: submission.slug,
-        description: submission.description,
-        longDescription: submission.longDescription || "",
-        logo: submission.logo,
-        image: submission.image,
-        pricing: submission.pricing,
-        priceDetails: submission.priceDetails,
-        website: submission.website,
-        twitterUrl: submission.twitterUrl,
-        linkedinUrl: submission.linkedinUrl,
-        instagramUrl: submission.instagramUrl,
-        categoryId: submission.categoryId,
-        approved: true,
+        slug: submission.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
+        shortDescription: submission.description,
+        longDescription: "",
+        websiteUrl: submission.websiteUrl,
+        pricingType: "Gratuit", // Valeur par défaut
+        categoryId: 1, // Catégorie par défaut
+        isVisible: true,
       },
     })
-
-    // Ajouter les tags
-    const tags = JSON.parse(submission.tags || "[]")
-    for (const tagName of tags) {
-      // Trouver ou créer le tag
-      let tag = await prisma.tag.findUnique({
-        where: { name: tagName },
-      })
-
-      if (!tag) {
-        tag = await prisma.tag.create({
-          data: {
-            name: tagName,
-            slug: tagName.toLowerCase().replace(/\s+/g, "-"),
-          },
-        })
-      }
-
-      // Associer le tag à l'outil
-      await prisma.toolTag.create({
-        data: {
-          toolId: tool.id,
-          tagId: tag.id,
-        },
-      })
-    }
 
     // Mettre à jour le statut de la soumission
     await prisma.toolSubmission.update({
       where: { id },
       data: {
-        status: "approved",
+        status: "Approved",
       },
     })
 

@@ -1,5 +1,24 @@
 import { type NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import { Prisma } from "@prisma/client"
+
+interface Feature {
+  title: string
+  description?: string
+  orderPosition?: number
+}
+
+interface UseCase {
+  title: string
+  description?: string
+  imageUrl?: string
+  orderPosition?: number
+}
+
+interface Audience {
+  name: string
+  description?: string
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,34 +36,30 @@ export async function GET(request: NextRequest) {
     }
 
     // Construire la requête avec les filtres
-    const where: any = { isVisible: true }
-
-    if (category) {
-      where.category = {
-        slug: category,
-      }
-    }
-
-    if (tag) {
-      where.toolTags = {
-        some: {
-          tag: {
-            slug: tag,
+    const where: Prisma.ToolWhereInput = {
+      isVisible: true,
+      ...(category && {
+        category: {
+          slug: category,
+        },
+      }),
+      ...(tag && {
+        toolTags: {
+          some: {
+            tag: {
+              slug: tag,
+            },
           },
         },
-      }
-    }
-
-    if (featured) {
-      where.isFeatured = true
-    }
-
-    if (search) {
-      where.OR = [
-        { name: { contains: search } },
-        { shortDescription: { contains: search } },
-        { longDescription: { contains: search } },
-      ]
+      }),
+      ...(featured && { isFeatured: true }),
+      ...(search && {
+        OR: [
+          { name: { contains: search } },
+          { shortDescription: { contains: search } },
+          { longDescription: { contains: search } },
+        ],
+      }),
     }
 
     // Récupérer les outils avec une seule requête
@@ -163,7 +178,7 @@ export async function POST(request: NextRequest) {
     // Gérer les features si fournies
     if (data.features && Array.isArray(data.features)) {
       await Promise.all(
-        data.features.map((feature: any, index: number) =>
+        data.features.map((feature: Feature, index: number) =>
           prisma.feature.create({
             data: {
               toolId: tool.id,
@@ -179,7 +194,7 @@ export async function POST(request: NextRequest) {
     // Gérer les use cases si fournis
     if (data.useCases && Array.isArray(data.useCases)) {
       await Promise.all(
-        data.useCases.map((useCase: any, index: number) =>
+        data.useCases.map((useCase: UseCase, index: number) =>
           prisma.useCase.create({
             data: {
               toolId: tool.id,
@@ -221,7 +236,7 @@ export async function POST(request: NextRequest) {
     // Gérer les publics cibles
     if (data.audiences && Array.isArray(data.audiences)) {
       await Promise.all(
-        data.audiences.map(async (audience: any) => {
+        data.audiences.map(async (audience: Audience) => {
           // Trouver ou créer le public cible
           const targetAudience = await prisma.targetAudience.upsert({
             where: { name: audience.name },

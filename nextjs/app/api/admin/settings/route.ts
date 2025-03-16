@@ -1,14 +1,19 @@
 import { type NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 
-export async function GET(request: NextRequest) {
+interface SiteSetting {
+  key: string
+  value: string
+}
+
+export async function GET() {
   try {
     // Récupérer tous les paramètres
     const settings = await prisma.siteSetting.findMany()
 
     // Transformer en objet clé-valeur
     const settingsObject = settings.reduce(
-      (acc, setting) => {
+      (acc: Record<string, string>, setting: SiteSetting) => {
         acc[setting.key] = setting.value
         return acc
       },

@@ -1,26 +1,77 @@
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient } from '@prisma/client'
 
-// Environment variables with defaults for development
-const databaseUrl = process.env.DATABASE_URL || "mysql://user:password@localhost:3306/videoianet"
-
-// Configuration options for Prisma Client
-const prismaClientOptions = {
-  datasources: {
-    db: {
-      url: databaseUrl,
-    },
-  },
-  // Log queries only in development
-  log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+interface ConnectionConfig {
+  min: number
+  max: number
+  timeout: number
 }
 
-// PrismaClient is attached to the global scope in development to avoid
-// exhausting the connection pool during development with fast refreshes
-const globalForPrisma = global as unknown as { prisma: PrismaClient }
+class DatabaseConnectionManager {
+  private static instance: DatabaseConnectionManager
+  private prisma: PrismaClient
+  private config: ConnectionConfig
 
-export const prisma = globalForPrisma.prisma || new PrismaClient(prismaClientOptions)
+  private constructor() {
+    this.config = {
+      min: Number(process.env.DATABASE_POOL_MIN) || 5,
+      max: Number(process.env.DATABASE_POOL_MAX) || 10,
+      timeout: 30000 // 30 secondes
+    }
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
+    this.prisma = new PrismaClient({
+      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL
+        }
+      },
+      // Configuration du pool de connexions
+      connection: {
+        pool: {
+          min: this.config.min,
+          max: this.config.max,
+          idleTimeoutMillis: this.config.timeout
+        }
+      }
+    })
+  }
 
-export default prisma
+  public static getInstance(): DatabaseConnectionManager {
+    if (!DatabaseConnectionManager.instance) {
+      DatabaseConnectionManager.instance = new DatabaseConnectionManager()
+    }
+    return DatabaseConnectionManager.instance
+  }
+
+  public getClient(): PrismaClient {
+    return this.prisma
+  }
+
+  public async disconnect(): Promise<void> {
+    await this.prisma.$disconnect()
+  }
+
+  public async connect(): Promise<void> {
+    try {
+      await this.prisma.$connect()
+      console.log('Connexion à la base de données établie avec succès')
+    } catch (error) {
+      console.error('Erreur de connexion à la base de données:', error)
+      throw error
+    }
+  }
+
+  public async healthCheck(): Promise<boolean> {
+    try {
+      await this.prisma.$queryRaw`SELECT 1`
+      return true
+    } catch (error) {
+      console.error('Erreur lors du contrôle de santé de la base de données:', error)
+      return false
+    }
+  }
+}
+
+export const dbManager = DatabaseConnectionManager.getInstance()
+export const prisma = dbManager.getClient()
 

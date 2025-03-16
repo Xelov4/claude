@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
     // Récupérer les soumissions en attente
     const submissions = await prisma.toolSubmission.findMany({
       where: {
-        status: "pending",
+        status: "Pending",
       },
       orderBy: {
         createdAt: "desc",

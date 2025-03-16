@@ -204,3 +204,24 @@ model Contact {
   @@map("contacts")
 }
 
+// Modèle pour les soumissions d'outils
+model ToolSubmission {
+  id              Int       @id @default(autoincrement())
+  name            String    @db.VarChar(100)
+  websiteUrl      String    @map("website_url") @db.VarChar(255)
+  description     String    @db.Text
+  submitterName   String    @map("submitter_name") @db.VarChar(100)
+  submitterEmail  String    @map("submitter_email") @db.VarChar(100)
+  status          SubmissionStatus @default(Pending)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  @@map("tool_submissions")
+}
+
+enum SubmissionStatus {
+  Pending
+  Approved
+  Rejected
+}
+

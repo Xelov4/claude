@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
+import Image from "next/image"
 import { ArrowRightIcon, SearchIcon, FilterIcon, StarIcon, CheckIcon, ExternalLinkIcon } from "lucide-react"
 import Link from "next/link"
 
@@ -94,21 +95,30 @@ export default function TagPage({ params }: { params: { slug: string } }) {
       <section className="container pb-12">
         <Card className="overflow-hidden border-2 border-primary/10">
           <div className="flex flex-col md:flex-row">
-            <div className="w-full md:w-2/5 bg-muted">
-              <img
-                src="/placeholder.svg?height=300&width=500"
-                alt="Featured tool screenshot"
-                className="w-full h-full object-cover"
-              />
+            <div className="w-full md:w-2/5 bg-muted relative">
+              <div className="relative w-full h-full">
+                <Image
+                  src="/placeholder.svg?height=300&width=500"
+                  alt="Featured tool screenshot"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 40vw"
+                  priority
+                />
+              </div>
             </div>
             <div className="w-full md:w-3/5 p-6 md:p-8">
               <div className="flex items-center gap-3 mb-3">
                 <div className="size-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
-                  <img
-                    src="/placeholder.svg?height=40&width=40"
-                    alt="Tool logo"
-                    className="w-full h-full object-cover"
-                  />
+                  <div className="relative w-full h-full">
+                    <Image
+                      src="/placeholder.svg?height=40&width=40"
+                      alt="Tool logo"
+                      fill
+                      className="object-cover"
+                      sizes="40px"
+                    />
+                  </div>
                 </div>
                 <div>
                   <div className="flex items-center gap-2">

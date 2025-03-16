@@ -8,15 +8,39 @@ import { Card } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd"
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd"
 import { GripVertical, Save, Plus, Trash2 } from "lucide-react"
 import { Logo } from "@/app/components/logo"
+
+interface Category {
+  id: number
+  name: string
+  slug: string
+  description: string
+  order: number
+  visible: boolean
+}
+
+interface Tool {
+  id: number
+  name: string
+  slug: string
+  description: string
+  longDescription: string
+  image: string
+  rating: number
+  categoryId: number
+  tags: string[]
+  featured: boolean
+  pricing: string
+  website: string
+}
 
 export default function AdminPage() {
   const [activeSection, setActiveSection] = useState("homepage")
 
   // Données simulées pour les catégories
-  const [categories, setCategories] = useState([
+  const [categories, setCategories] = useState<Category[]>([
     {
       id: 1,
       name: "Création de Vidéos",
@@ -55,7 +79,7 @@ export default function AdminPage() {
   ])
 
   // Données simulées pour les outils
-  const [tools, setTools] = useState([
+  const [tools, setTools] = useState<Tool[]>([
     {
       id: 1,
       name: "VideoGenius AI",
@@ -90,7 +114,7 @@ export default function AdminPage() {
   ])
 
   // Fonction pour réordonner les catégories
-  const onDragEnd = (result) => {
+  const onDragEnd = (result: DropResult) => {
     if (!result.destination) return
 
     const items = Array.from(categories)
@@ -107,10 +131,10 @@ export default function AdminPage() {
   }
 
   // État pour l'outil sélectionné
-  const [selectedTool, setSelectedTool] = useState(null)
+  const [selectedTool, setSelectedTool] = useState<Tool | null>(null)
 
   // État pour la catégorie sélectionnée
-  const [selectedCategory, setSelectedCategory] = useState(null)
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -260,7 +284,9 @@ export default function AdminPage() {
                           <Select
                             onValueChange={(value) => {
                               const category = categories.find((c) => c.id === Number.parseInt(value))
-                              setSelectedCategory(category)
+                              if (category) {
+                                setSelectedCategory(category)
+                              }
                             }}
                           >
                             <SelectTrigger>
@@ -379,7 +405,9 @@ export default function AdminPage() {
                             value={selectedTool?.id.toString()}
                             onValueChange={(value) => {
                               const tool = tools.find((t) => t.id === Number.parseInt(value))
-                              setSelectedTool(tool)
+                              if (tool) {
+                                setSelectedTool(tool)
+                              }
                             }}
                           >
                             <SelectTrigger>
@@ -602,7 +630,7 @@ export default function AdminPage() {
                                 <TableCell>{category.slug}</TableCell>
                                 <TableCell>{tools.filter((t) => t.categoryId === category.id).length}</TableCell>
                                 <TableCell>
-                                  <Button variant="ghost" size="sm" onClick={() => setSelectedCategory(category)}>
+                                  <Button variant="ghost" size="sm" onClick={() => setSelectedCategory(category || null)}>
                                     Modifier
                                   </Button>
                                 </TableCell>
@@ -629,7 +657,9 @@ export default function AdminPage() {
                             value={selectedCategory?.id.toString()}
                             onValueChange={(value) => {
                               const category = categories.find((c) => c.id === Number.parseInt(value))
-                              setSelectedCategory(category)
+                              if (category) {
+                                setSelectedCategory(category)
+                              }
                             }}
                           >
                             <SelectTrigger>

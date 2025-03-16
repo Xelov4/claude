@@ -5,6 +5,31 @@ import { Card } from "@/components/ui/card"
 import { ArrowRightIcon, SearchIcon, FilterIcon, StarIcon } from "lucide-react"
 import Link from "next/link"
 import prisma from "@/lib/prisma"
+import Image from "next/image"
+
+interface Tool {
+  id: string
+  name: string
+  slug: string
+  description: string
+  image: string
+  rating: number
+  category: string
+  categorySlug: string
+  tags: string[]
+}
+
+interface Category {
+  name: string
+  slug: string
+  count: number
+}
+
+interface Tag {
+  name: string
+  slug: string
+  count: number
+}
 
 export default async function SearchPage({ searchParams }: { searchParams: { q: string } }) {
   const searchQuery = searchParams.q || ""
@@ -50,7 +75,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q: 
     orderBy: { order: "asc" },
   })
 
-  const formattedTools = tools.map((tool) => ({
+  const formattedTools = tools.map((tool: any) => ({
     id: tool.id,
     name: tool.name,
     slug: tool.slug,
@@ -59,7 +84,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q: 
     rating: tool.rating,
     category: tool.category.name,
     categorySlug: tool.category.slug,
-    tags: tool.tags.map((t) => t.tag.name),
+    tags: tool.tags.map((t: { tag: { name: string } }) => t.tag.name),
   }))
 
   return (
@@ -125,8 +150,8 @@ export default async function SearchPage({ searchParams }: { searchParams: { q: 
             <div className="space-y-3">
               <h3 className="text-sm font-medium">Categories</h3>
               <div className="space-y-2">
-                {categories.map((category) => (
-                  <div key={category.id} className="flex items-center">
+                {categories.map((category: Category) => (
+                  <div key={category.slug} className="flex items-center">
                     <input
                       type="checkbox"
                       id={`category-${category.name}`}
@@ -147,8 +172,8 @@ export default async function SearchPage({ searchParams }: { searchParams: { q: 
             <div className="space-y-3">
               <h3 className="text-sm font-medium">Popular Tags</h3>
               <div className="flex flex-wrap gap-2">
-                {popularTags.map((tag) => (
-                  <Badge key={tag.id} variant="outline" className="cursor-pointer hover:bg-muted">
+                {popularTags.map((tag: Tag) => (
+                  <Badge key={tag.slug} variant="outline" className="cursor-pointer hover:bg-muted">
                     {tag.name}
                   </Badge>
                 ))}
@@ -202,7 +227,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q: 
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {formattedTools.map((tool) => (
+              {formattedTools.map((tool: Tool) => (
                 <ToolCard key={tool.id} tool={tool} />
               ))}
             </div>
@@ -364,7 +389,13 @@ function ToolCard({
   return (
     <Card className="overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
       <div className="aspect-video relative bg-muted">
-        <img src={tool.image || "/placeholder.svg"} alt="Tool thumbnail" className="w-full h-full object-cover" />
+        <Image
+          src={tool.image || "/placeholder.svg"}
+          alt="Tool thumbnail"
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        />
         <Badge className="absolute top-2 right-2">{tool.category}</Badge>
       </div>
       <div className="p-4 flex-1 flex flex-col">
@@ -390,5 +421,13 @@ function ToolCard({
       </div>
     </Card>
   )
+}
+
+function CategoryFilter({ categories }: { categories: Category[] }) {
+  // ... existing code ...
+}
+
+function TagFilter({ tags }: { tags: Tag[] }) {
+  // ... existing code ...
 }
 

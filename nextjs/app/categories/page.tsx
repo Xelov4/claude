@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ArrowRightIcon } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { Logo } from "../components/logo"
 
 export default function CategoriesPage() {
@@ -398,13 +399,17 @@ export default function CategoriesPage() {
                         <Link key={tool.id} href={`/outil/${tool.slug}`}>
                           <Card className="p-4 hover:shadow-md transition-shadow h-full">
                             <div className="flex items-start gap-3">
-                              <div className="size-12 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">
-                                <img
-                                  src={tool.image || "/placeholder.svg"}
-                                  alt={`Logo de ${tool.name}`}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
+                              {tool.image && (
+                                <div className="relative h-16 w-16">
+                                  <Image
+                                    src={tool.image}
+                                    alt={tool.name}
+                                    fill
+                                    className="object-contain"
+                                    sizes="64px"
+                                  />
+                                </div>
+                              )}
                               <div>
                                 <h4 className="font-medium">{tool.name}</h4>
                                 <p className="text-sm text-muted-foreground line-clamp-1">{tool.description}</p>
@@ -540,10 +545,12 @@ export default function CategoriesPage() {
   )
 }
 
-function SearchIcon({ className }) {
+function SearchIcon({ className }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -558,11 +565,15 @@ function SearchIcon({ className }) {
   )
 }
 
-function Input(props) {
+interface InputProps extends React.ComponentPropsWithoutRef<'input'> {
+  // Ajout de propriétés spécifiques si nécessaire
+}
+
+function Input(props: InputProps) {
   return (
     <input
       type="text"
-      className={`flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${props.className}`}
+      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
       {...props}
     />
   )

@@ -33,7 +33,7 @@ export function AnimatedSearch() {
       clearInterval(placeholderInterval)
       clearInterval(dotInterval)
     }
-  }, [])
+  }, [placeholders.length])
 
   const currentPlaceholder = placeholders[placeholderIndex]
   const dots = ".".repeat(dotCount)

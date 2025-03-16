@@ -8,14 +8,9 @@ export async function GET(request: NextRequest) {
     const parentOnly = searchParams.get("parentOnly") === "true"
 
     // Construire la requête avec les filtres
-    const where: any = { visible: true }
-
-    if (parentOnly) {
-      where.parentId = null
-    }
-
-    if (featured) {
-      where.featured = true
+    const where = {
+      isVisible: true,
+      ...(parentOnly && { parentId: null }),
     }
 
     // Récupérer les catégories
@@ -23,12 +18,12 @@ export async function GET(request: NextRequest) {
       where,
       include: {
         subcategories: {
-          where: { visible: true },
+          where: { isVisible: true },
         },
         parent: true,
       },
       orderBy: {
-        order: "asc",
+        orderPosition: "asc",
       },
     })
 
@@ -54,9 +49,8 @@ export async function POST(request: NextRequest) {
         name: data.name,
         slug: data.slug,
         description: data.description || "",
-        order: data.order || 0,
-        visible: data.visible !== undefined ? data.visible : true,
-        featured: data.featured || false,
+        orderPosition: data.order || 0,
+        isVisible: data.visible !== undefined ? data.visible : true,
         parentId: data.parentId || null,
       },
     })

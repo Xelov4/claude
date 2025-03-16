@@ -1,31 +1,33 @@
-import { type NextRequest, NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
+import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const id = Number.parseInt(params.id)
+    const id = parseInt(params.id)
 
-    // Récupérer la soumission
-    const submission = await prisma.toolSubmission.findUnique({
-      where: { id },
-    })
-
-    if (!submission) {
-      return NextResponse.json({ error: "Submission not found" }, { status: 404 })
+    if (isNaN(id)) {
+      return NextResponse.json(
+        { error: "ID invalide" },
+        { status: 400 }
+      )
     }
 
-    // Mettre à jour le statut de la soumission
-    await prisma.toolSubmission.update({
+    const submission = await prisma.toolSubmission.update({
       where: { id },
       data: {
-        status: "rejected",
+        status: "Rejected",
       },
     })
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json(submission)
   } catch (error) {
-    console.error("Error rejecting submission:", error)
-    return NextResponse.json({ error: "Failed to reject submission" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Erreur lors du rejet de la soumission" },
+      { status: 500 }
+    )
   }
 }
 

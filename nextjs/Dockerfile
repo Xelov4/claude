@@ -1,25 +1,32 @@
-FROM node:18-alpine AS base
+FROM node:18-alpine AS builder
 
-# Définir le répertoire de travail
 WORKDIR /app
 
-# Copier les fichiers de définition de dépendances
 COPY package*.json ./
+RUN npm install --legacy-peer-deps
 
-# Installer les dépendances
-RUN npm ci
-
-# Copier le reste des fichiers de l'application
-COPY . ./
-
-# Générer le client Prisma
+COPY . .
 RUN npx prisma generate
 
-# Builder l'application
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
 RUN npm run build
 
-# Exposer le port 3000
+FROM node:18-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/next.config.mjs ./
+COPY --from=builder /app/prisma ./prisma
+
 EXPOSE 3000
 
-# Commande pour démarrer l'application
 CMD ["npm", "start"]

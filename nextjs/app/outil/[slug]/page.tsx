@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
+import Image from "next/image"
 import {
   ArrowRightIcon,
   ExternalLinkIcon,
@@ -20,6 +21,61 @@ import { Logo } from "@/app/components/logo"
 import prisma from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import { ReviewSection } from "./review-section"
+
+interface SimilarTool {
+  id: number
+  name: string
+  shortDescription: string
+  description: string
+  imageUrl: string
+  slug: string
+  rating: number
+  category: {
+    name: string
+  }
+  toolTags: {
+    tag: {
+      name: string
+    }
+  }[]
+}
+
+interface Feature {
+  id: number
+  title: string
+  description: string | null
+}
+
+interface UseCase {
+  id: number
+  title: string
+  description: string | null
+  imageUrl: string | null
+}
+
+interface Tag {
+  name: string
+  slug: string
+}
+
+interface TargetAudience {
+  audience: {
+    name: string
+  }
+  description: string | null
+  audienceId: number
+}
+
+interface FormattedSimilarTool {
+  id: number
+  name: string
+  description: string
+  image: string
+  slug: string
+  rating: number
+  category: string
+  tags: string[]
+}
 
 export default async function ToolDetailPage({ params }: { params: { slug: string } }) {
   const slug = params.slug
@@ -91,7 +147,7 @@ export default async function ToolDetailPage({ params }: { params: { slug: strin
     })
 
     // Formater les outils similaires
-    const formattedSimilarTools = similarTools.map((similarTool) => ({
+    const formattedSimilarTools: FormattedSimilarTool[] = similarTools.map((similarTool: any) => ({
       id: similarTool.id,
       name: similarTool.name,
       description: similarTool.shortDescription,
@@ -99,7 +155,7 @@ export default async function ToolDetailPage({ params }: { params: { slug: strin
       slug: similarTool.slug,
       rating: similarTool.rating,
       category: similarTool.category.name,
-      tags: similarTool.toolTags.map((t) => t.tag.name),
+      tags: similarTool.toolTags.map((t: any) => t.tag.name),
     }))
 
     // Vérifier si l'outil a des réseaux sociaux
@@ -170,11 +226,15 @@ export default async function ToolDetailPage({ params }: { params: { slug: strin
             <div className="w-full md:w-2/3">
               <div className="flex items-start gap-4">
                 <div className="size-16 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
-                  <img
-                    src={tool.logoUrl || "/placeholder.svg?height=64&width=64"}
-                    alt={`Logo de ${tool.name}`}
-                    className="w-full h-full object-cover"
-                  />
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={tool.logoUrl || "/placeholder.svg?height=64&width=64"}
+                      alt={`Logo de ${tool.name}`}
+                      fill
+                      className="object-cover"
+                      sizes="64px"
+                    />
+                  </div>
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-3 flex-wrap">
@@ -218,18 +278,23 @@ export default async function ToolDetailPage({ params }: { params: { slug: strin
             <div className="w-full md:w-2/3 space-y-10">
               {/* Capture d'écran de l'Outil */}
               <div className="aspect-video w-full bg-muted rounded-lg overflow-hidden">
-                <img
-                  src={tool.imageUrl || "/placeholder.svg?height=400&width=800"}
-                  alt={`Capture d'écran de ${tool.name}`}
-                  className="w-full h-full object-cover"
-                />
+                <div className="relative w-full h-full">
+                  <Image
+                    src={tool.imageUrl || "/placeholder.svg?height=400&width=800"}
+                    alt={`Capture d'écran de ${tool.name}`}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 66vw"
+                    priority
+                  />
+                </div>
               </div>
 
               {/* Section Description */}
               <div className="space-y-4">
                 <h2 className="text-2xl font-bold">Description</h2>
                 <div className="prose prose-sm max-w-none">
-                  {tool.longDescription?.split("\n\n").map((paragraph, index) => (
+                  {tool.longDescription?.split("\n\n").map((paragraph: string, index: number) => (
                     <p key={index}>{paragraph}</p>
                   ))}
                 </div>
@@ -279,7 +344,7 @@ export default async function ToolDetailPage({ params }: { params: { slug: strin
                 <div className="space-y-4">
                   <h2 className="text-2xl font-bold">Fonctionnalités Clés</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {tool.features.map((feature) => (
+                    {tool.features.map((feature: Feature) => (
                       <Card key={feature.id} className="p-5">
                         <div className="flex items-start gap-3">
                           <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-1">
@@ -301,14 +366,19 @@ export default async function ToolDetailPage({ params }: { params: { slug: strin
                 <div className="space-y-4">
                   <h2 className="text-2xl font-bold">Cas d'Utilisation</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {tool.useCases.map((useCase) => (
+                    {tool.useCases.map((useCase: UseCase) => (
                       <Card key={useCase.id} className="overflow-hidden">
                         <div className="aspect-video bg-muted">
-                          <img
-                            src={useCase.imageUrl || "/placeholder.svg?height=200&width=400"}
-                            alt={useCase.title}
-                            className="w-full h-full object-cover"
-                          />
+                          <div className="relative w-full h-full">
+                            <Image
+                              src={useCase.imageUrl || "/placeholder.svg?height=200&width=400"}
+                              alt={useCase.title}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 768px) 100vw, 66vw"
+                              priority
+                            />
+                          </div>
                         </div>
                         <div className="p-5">
                           <h3 className="font-semibold mb-2">{useCase.title}</h3>
@@ -328,17 +398,22 @@ export default async function ToolDetailPage({ params }: { params: { slug: strin
                 <div className="space-y-4">
                   <h2 className="text-2xl font-bold">Logiciels Similaires</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {formattedSimilarTools.map((similarTool) => (
+                    {formattedSimilarTools.map((similarTool: FormattedSimilarTool) => (
                       <Card
                         key={similarTool.id}
                         className="overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow"
                       >
                         <div className="aspect-video relative bg-muted">
-                          <img
-                            src={similarTool.image || "/placeholder.svg?height=200&width=400"}
-                            alt={`Aperçu de ${similarTool.name}`}
-                            className="w-full h-full object-cover"
-                          />
+                          <div className="relative w-full h-full">
+                            <Image
+                              src={similarTool.image || "/placeholder.svg?height=200&width=400"}
+                              alt={`Aperçu de ${similarTool.name}`}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 768px) 100vw, 66vw"
+                              priority
+                            />
+                          </div>
                           <Badge className="absolute top-2 right-2">{similarTool.category}</Badge>
                         </div>
                         <div className="p-4 flex-1 flex flex-col">
@@ -351,7 +426,7 @@ export default async function ToolDetailPage({ params }: { params: { slug: strin
                           </div>
                           <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{similarTool.description}</p>
                           <div className="flex flex-wrap gap-1 mt-auto mb-3">
-                            {similarTool.tags.slice(0, 3).map((tag, index) => (
+                            {similarTool.tags.slice(0, 3).map((tag: string, index: number) => (
                               <Badge key={index} variant="secondary" className="text-xs">
                                 {tag}
                               </Badge>
@@ -393,7 +468,7 @@ export default async function ToolDetailPage({ params }: { params: { slug: strin
                     <div>
                       <h4 className="font-medium">Cible</h4>
                       <p className="text-sm text-muted-foreground">
-                        {tool.toolAudiences.map((ta) => ta.audience.name).join(", ")}
+                        {tool.toolAudiences.map((ta: TargetAudience) => ta.audience.name).join(", ")}
                       </p>
                     </div>
                   </div>
@@ -415,10 +490,10 @@ export default async function ToolDetailPage({ params }: { params: { slug: strin
               <Card className="p-5">
                 <h3 className="font-semibold mb-3">Tags</h3>
                 <div className="flex flex-wrap gap-2">
-                  {tool.toolTags.map((toolTag) => (
-                    <Link key={toolTag.tagId} href={`/tags/${toolTag.tag.slug}`}>
+                  {tool.toolTags.map((tag: { tag: Tag }, index: number) => (
+                    <Link key={index} href={`/tags/${tag.tag.slug}`}>
                       <Badge variant="secondary" className="cursor-pointer hover:bg-muted">
-                        {toolTag.tag.name}
+                        {tag.tag.name}
                       </Badge>
                     </Link>
                   ))}
@@ -429,7 +504,7 @@ export default async function ToolDetailPage({ params }: { params: { slug: strin
               <Card className="p-5">
                 <h3 className="font-semibold mb-3">Cible</h3>
                 <div className="space-y-3">
-                  {tool.toolAudiences.map((ta) => (
+                  {tool.toolAudiences.map((ta: TargetAudience) => (
                     <div key={ta.audienceId} className="flex items-start gap-3">
                       <div className="size-6 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-0.5">
                         <UsersIcon className="h-3 w-3" />
@@ -568,10 +643,12 @@ export default async function ToolDetailPage({ params }: { params: { slug: strin
   }
 }
 
-function SearchIcon({ className }: { className: string }) {
+function SearchIcon({ className }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -586,11 +663,15 @@ function SearchIcon({ className }: { className: string }) {
   )
 }
 
-function Input(props: any) {
+interface InputProps extends React.ComponentPropsWithoutRef<'input'> {
+  // Ajout de propriétés spécifiques si nécessaire
+}
+
+function Input(props: InputProps) {
   return (
     <input
       type="text"
-      className={`flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${props.className}`}
+      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
       {...props}
     />
   )

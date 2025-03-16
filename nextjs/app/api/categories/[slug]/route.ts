@@ -1,7 +1,62 @@
 import { type NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import { Prisma } from "@prisma/client"
 
-export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
+interface FormattedTool {
+  id: number
+  name: string
+  slug: string
+  description: string
+  image: string | null
+  rating: number
+  tags: string[]
+}
+
+interface CategoryWithTools {
+  id: number
+  name: string
+  slug: string
+  description: string | null
+  parentId: number | null
+  orderPosition: number
+  isVisible: boolean
+  metaTitle: string | null
+  metaDescription: string | null
+  createdAt: Date
+  updatedAt: Date
+  parent: {
+    id: number
+    name: string
+    slug: string
+  } | null
+  subcategories: {
+    id: number
+    name: string
+    slug: string
+    description: string | null
+    orderPosition: number
+  }[]
+  tools: FormattedTool[]
+}
+
+interface ToolWithTags {
+  id: number
+  name: string
+  slug: string
+  shortDescription: string
+  imageUrl: string | null
+  rating: any // Prisma Decimal type
+  toolTags: {
+    tag: {
+      name: string
+    }
+  }[]
+}
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { slug: string } }
+): Promise<NextResponse<CategoryWithTools | { error: string }>> {
   try {
     const slug = params.slug
 
@@ -10,8 +65,8 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
       where: { slug },
       include: {
         subcategories: {
-          where: { visible: true },
-          orderBy: { order: "asc" },
+          where: { isVisible: true },
+          orderBy: { orderPosition: "asc" },
         },
         parent: true,
       },
@@ -25,10 +80,10 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
     const tools = await prisma.tool.findMany({
       where: {
         categoryId: category.id,
-        approved: true,
+        isVisible: true,
       },
       include: {
-        tags: {
+        toolTags: {
           include: {
             tag: true,
           },
@@ -40,18 +95,18 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
     })
 
     // Formater les outils pour la réponse
-    const formattedTools = tools.map((tool) => ({
+    const formattedTools: FormattedTool[] = tools.map((tool: ToolWithTags) => ({
       id: tool.id,
       name: tool.name,
       slug: tool.slug,
-      description: tool.description,
-      image: tool.image,
-      rating: tool.rating,
-      tags: tool.tags.map((t) => t.tag.name),
+      description: tool.shortDescription,
+      image: tool.imageUrl,
+      rating: Number(tool.rating),
+      tags: tool.toolTags.map((t: { tag: { name: string } }) => t.tag.name),
     }))
 
     // Construire la réponse
-    const response = {
+    const response: CategoryWithTools = {
       ...category,
       tools: formattedTools,
     }
@@ -63,10 +118,21 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { slug: string } }) {
+interface CategoryUpdateData {
+  name: string
+  description?: string | null
+  order?: number
+  visible?: boolean
+  parentId?: number | null
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { slug: string } }
+): Promise<NextResponse> {
   try {
     const slug = params.slug
-    const data = await request.json()
+    const data: CategoryUpdateData = await request.json()
 
     // Vérifier si la catégorie existe
     const existingCategory = await prisma.category.findUnique({
@@ -83,9 +149,8 @@ export async function PUT(request: NextRequest, { params }: { params: { slug: st
       data: {
         name: data.name,
         description: data.description,
-        order: data.order,
-        visible: data.visible,
-        featured: data.featured,
+        orderPosition: data.order,
+        isVisible: data.visible,
         parentId: data.parentId,
       },
     })
@@ -97,7 +162,10 @@ export async function PUT(request: NextRequest, { params }: { params: { slug: st
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { slug: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { slug: string } }
+): Promise<NextResponse> {
   try {
     const slug = params.slug
 
