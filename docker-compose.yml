@@ -10,7 +10,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=mysql://root:root@mariadb:3306/video_ia
+      - DATABASE_URL=mysql://root:root@mariadb:3306/video_ia_db
       - NODE_ENV=production
       - NEXT_PUBLIC_APP_URL=https://www.video-ia.net
       - NEXT_PUBLIC_API_URL=https://www.video-ia.net/api
@@ -62,19 +62,21 @@ services:
 
   mariadb:
     container_name: video_ia_mariadb
-    image: mariadb:latest
+    build:
+      context: ./mariadb
+      dockerfile: Dockerfile
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: video_ia
+      MYSQL_DATABASE: video_ia_db
     volumes:
       - mariadb_data:/var/lib/mysql
-      - ./mariadb/my.cnf:/etc/mysql/my.cnf
-      - ./mariadb/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./mariadb/my.cnf:/etc/mysql/my.cnf:ro
+      - ./mariadb/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - video-ia-net
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
       interval: 10s
       timeout: 5s
       retries: 3
